@@ -1,0 +1,15 @@
+.{
+    .name = .sphaudio,
+    .version = "0.0.1",
+    .paths = .{
+        "src",
+        "build.zig",
+        "build.zig.zon",
+    },
+    .dependencies = .{
+        .sphtud = .{
+            .path = "sphtud",
+        }
+    },
+    .fingerprint = 0x916dd58e443a232d,
+}

@@ -1,0 +1,12 @@
+pw_init
+pw_properties_new
+pw_stream_new_simple
+pw_stream_connect
+pw_stream_dequeue_buffer
+pw_stream_queue_buffer
+pw_stream_destroy
+pw_loop_new
+pw_loop_get_fd
+pw_loop_iterate
+pw_loop_enter
+pw_loop_destroy
