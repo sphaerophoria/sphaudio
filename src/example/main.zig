@@ -79,7 +79,7 @@ pub fn main() !void {
     var pws = try PwService.init(arena, expansion, &loop, 0);
     defer pws.deinit();
 
-    var sample_buf: [512 * 1024 / 4]f32 = undefined;
+    var sample_buf: [512 * 1024 / 4]i16 = undefined;
 
     const num_channels = 2;
     const sample_rate = 44100;
@@ -112,10 +112,11 @@ pub fn main() !void {
                 const num_samples = (buf.items.len - buf.count()) / 2;
 
                 for (0..num_samples) |_| {
-                    const sample =
+                    const sample_f32 =
                         std.math.sin(@as(f32, @floatFromInt(acc)) * std.math.pi * 2 / samples_per_440) / 2.0 +
                         std.math.sin(@as(f32, @floatFromInt(acc)) * std.math.pi * 2 / samples_per_880) / 2.0;
 
+                    const sample: i16 = @intFromFloat(sample_f32 * std.math.maxInt(i16));
                     for (0..num_channels) |_| {
                         buf.pushNoClobber(sample) catch unreachable;
                     }

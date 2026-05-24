@@ -4,7 +4,7 @@ const pw = @import("pw_bindings");
 const DynPipewire2 = @import("dyn_pw");
 const DynSpa = @import("dyn_spa");
 
-pub const StreamBuffer = sphtud.util.CircularBuffer(f32);
+pub const StreamBuffer = sphtud.util.CircularBuffer(i16);
 
 var pw_lib: ?std.DynLib = null;
 var dpw: DynPipewire2 = undefined;
@@ -101,7 +101,7 @@ pub const AudioStream = struct {
             .size = builder_buf.len,
         };
         const audio_format = pw.spa_audio_info_raw {
-            .format = pw.SPA_AUDIO_FORMAT_F32,
+            .format = pw.SPA_AUDIO_FORMAT_S16,
             .channels = params.num_channels,
             .rate = params.sample_rate,
         };
@@ -130,7 +130,7 @@ pub const AudioStream = struct {
 pub const AudioParams = struct {
     num_channels: u8,
     sample_rate: u32,
-    buf: []f32,
+    buf: []i16,
 };
 
 pub fn service(self: *Pipewire) !void {
@@ -163,7 +163,7 @@ fn onProcess(userdata: ?*anyopaque) callconv(.c) void {
 
     const bd = buffer.datas[0];
 
-    const stride = as.num_channels * @sizeOf(f32);
+    const stride = as.num_channels * @sizeOf(i16);
 
     const max_out_frames = bd.maxsize / stride;
     const max_in_frames = as.sb.count() / 2;
@@ -171,8 +171,8 @@ fn onProcess(userdata: ?*anyopaque) callconv(.c) void {
 
     const fill_frames = @min(requested_frames, @min(max_in_frames, max_out_frames));
 
-    const out_slice_ptr: [*]f32 = @ptrCast(@alignCast(bd.data));
-    const out_slice: []f32 = out_slice_ptr[0..fill_frames * as.num_channels];
+    const out_slice_ptr: [*]i16 = @ptrCast(@alignCast(bd.data));
+    const out_slice: []i16 = out_slice_ptr[0..fill_frames * as.num_channels];
 
     for (0..fill_frames) |i| {
         for (0..as.num_channels) |j| {
