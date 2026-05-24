@@ -67,12 +67,16 @@ const PwService = struct {
 
 
 pub fn main() !void {
-    const gpa = std.heap.smp_allocator;
+    var alloc_buf: [1 * 1024 * 1024]u8 = undefined;
+    var buf_alloc = sphtud.alloc.BufAllocator.init(&alloc_buf);
+
+    const arena = buf_alloc.allocator();
+    const expansion = buf_alloc.expansion();
 
     var chain_buf: [100]usize = undefined;
     var loop = try sphtud.io.Loop.init(&chain_buf);
 
-    var pws = try PwService.init(gpa, .general(gpa), &loop, 0);
+    var pws = try PwService.init(arena, expansion, &loop, 0);
     defer pws.deinit();
 
     var sample_buf: [512 * 1024 / 4]f32 = undefined;
@@ -88,7 +92,7 @@ pub fn main() !void {
         .sample_rate = sample_rate,
     });
 
-    var timer = try sphtud.io.TimerService.init(gpa, &loop, 1);
+    var timer = try sphtud.io.TimerService.init(arena, expansion, &loop, 1);
 
     const timer_handle = try timer.add(.fromMilliseconds(200), 2);
     var acc: usize = 0;
