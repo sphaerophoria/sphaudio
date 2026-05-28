@@ -94,6 +94,7 @@ pub const AudioStream = struct {
             },
             .num_channels = params.num_channels,
         };
+        @memset(params.buf, 0);
 
         var builder_buf: [1024]u8 = undefined;
         var b = pw.spa_pod_builder {
@@ -176,7 +177,7 @@ fn onProcess(userdata: ?*anyopaque) callconv(.c) void {
 
     for (0..fill_frames) |i| {
         for (0..as.num_channels) |j| {
-            out_slice[i * as.num_channels + j] = as.sb.pop() orelse unreachable;
+            out_slice[i * as.num_channels + j] = as.sb.popWrite(0) orelse unreachable;
         }
     }
 
