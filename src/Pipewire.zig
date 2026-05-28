@@ -69,20 +69,12 @@ pub const AudioStream = struct {
     num_channels: u8,
 
     pub fn initPinned(self: *AudioStream, parent: *Pipewire, params: AudioParams) !void {
-        const props = dpw.pw_properties_new(pw.PW_KEY_MEDIA_TYPE, "Audio",
-                    pw.PW_KEY_MEDIA_CATEGORY, "Playback",
-                    pw.PW_KEY_MEDIA_ROLE, "Music",
-                    @as([*c]u8, 0));
+        const props = dpw.pw_properties_new(pw.PW_KEY_MEDIA_TYPE, "Audio", pw.PW_KEY_MEDIA_CATEGORY, "Playback", pw.PW_KEY_MEDIA_ROLE, "Music", @as([*c]u8, 0));
 
         // It looks like props ownership is transfered to the stream, whether
         // or not stream initialization succeeds, no cleanup required
 
-        const stream = dpw.pw_stream_new_simple(
-                            parent.loop,
-                            "audio-src",
-                            props,
-                            &stream_events,
-                            self) orelse return error.MakeStream;
+        const stream = dpw.pw_stream_new_simple(parent.loop, "audio-src", props, &stream_events, self) orelse return error.MakeStream;
         errdefer dpw.pw_stream_destroy(stream);
 
         self.* = .{
@@ -97,11 +89,11 @@ pub const AudioStream = struct {
         @memset(params.buf, 0);
 
         var builder_buf: [1024]u8 = undefined;
-        var b = pw.spa_pod_builder {
+        var b = pw.spa_pod_builder{
             .data = &builder_buf,
             .size = builder_buf.len,
         };
-        const audio_format = pw.spa_audio_info_raw {
+        const audio_format = pw.spa_audio_info_raw{
             .format = pw.SPA_AUDIO_FORMAT_S16,
             .channels = params.num_channels,
             .rate = params.sample_rate,
@@ -109,16 +101,11 @@ pub const AudioStream = struct {
 
         // spa_params is a pointer into builder_buf, so no need to release any
         // resources
-        var spa_params = dspa.spa_format_audio_raw_build(&b, pw.SPA_PARAM_EnumFormat,
-                            &audio_format);
+        var spa_params = dspa.spa_format_audio_raw_build(&b, pw.SPA_PARAM_EnumFormat, &audio_format);
 
-        const connect_res = dpw.pw_stream_connect(stream,
-                      pw.PW_DIRECTION_OUTPUT,
-                      pw.PW_ID_ANY,
-                      pw.PW_STREAM_FLAG_AUTOCONNECT |
-                      pw.PW_STREAM_FLAG_MAP_BUFFERS |
-                      pw.PW_STREAM_FLAG_RT_PROCESS,
-                      @ptrCast(&spa_params), 1);
+        const connect_res = dpw.pw_stream_connect(stream, pw.PW_DIRECTION_OUTPUT, pw.PW_ID_ANY, pw.PW_STREAM_FLAG_AUTOCONNECT |
+            pw.PW_STREAM_FLAG_MAP_BUFFERS |
+            pw.PW_STREAM_FLAG_RT_PROCESS, @ptrCast(&spa_params), 1);
 
         if (connect_res != 0) return error.MakeStream;
     }
@@ -173,7 +160,7 @@ fn onProcess(userdata: ?*anyopaque) callconv(.c) void {
     const fill_frames = @min(requested_frames, @min(max_in_frames, max_out_frames));
 
     const out_slice_ptr: [*]i16 = @ptrCast(@alignCast(bd.data));
-    const out_slice: []i16 = out_slice_ptr[0..fill_frames * as.num_channels];
+    const out_slice: []i16 = out_slice_ptr[0 .. fill_frames * as.num_channels];
 
     for (0..fill_frames) |i| {
         for (0..as.num_channels) |j| {
@@ -188,7 +175,7 @@ fn onProcess(userdata: ?*anyopaque) callconv(.c) void {
     _ = dpw.pw_stream_queue_buffer(as.stream, b);
 }
 
-const stream_events = pw.pw_stream_events {
-        .version = pw.PW_VERSION_STREAM_EVENTS,
-        .process = onProcess,
+const stream_events = pw.pw_stream_events{
+    .version = pw.PW_VERSION_STREAM_EVENTS,
+    .process = onProcess,
 };
