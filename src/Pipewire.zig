@@ -104,8 +104,7 @@ pub const AudioStream = struct {
         var spa_params = dspa.spa_format_audio_raw_build(&b, pw.SPA_PARAM_EnumFormat, &audio_format);
 
         const connect_res = dpw.pw_stream_connect(stream, pw.PW_DIRECTION_OUTPUT, pw.PW_ID_ANY, pw.PW_STREAM_FLAG_AUTOCONNECT |
-            pw.PW_STREAM_FLAG_MAP_BUFFERS |
-            pw.PW_STREAM_FLAG_RT_PROCESS, @ptrCast(&spa_params), 1);
+            pw.PW_STREAM_FLAG_MAP_BUFFERS, @ptrCast(&spa_params), 1);
 
         if (connect_res != 0) return error.MakeStream;
     }
